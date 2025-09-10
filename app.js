@@ -2,9 +2,10 @@ const path = require("path");
 
 const express = require("express");
 const bodyParser = require("body-parser");
+const mongoose = require("mongoose");
 
 const errorController = require("./controllers/error");
-const mongoConnect = require("./util/database").mongoConnect;
+// const mongoConnect = require("./util/database").mongoConnect;
 
 const app = express();
 
@@ -19,16 +20,9 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, "public")));
 
 app.use((req, res, next) => {
-  User.findById("68beea38a67e48259ac708f9")
+  User.findById("68c1a9ca8648ad3dbab921c0")
     .then((user) => {
-      req.user = new User(
-        user.name,
-        user.password,
-        user.email,
-        user.phone,
-        user.cart,
-        user._id
-      );
+      req.user = user;
       next();
     })
     .catch((err) => console.log(err));
@@ -39,6 +33,29 @@ app.use(shopRoutes);
 
 app.use(errorController.get404);
 
-mongoConnect(() => {
-  app.listen(4000);
-});
+// mongoConnect(() => {
+//   app.listen(4000);
+// });
+
+mongoose
+  .connect(
+    "mongodb+srv://nosqlUser:IzFHDCQLdSR951zB@clusternosql.qxinlob.mongodb.net/shop?retryWrites=true&w=majority&appName=ClusterNosql"
+  )
+  .then((result) => {
+    User.findOne().then((user) => {
+      if (!user) {
+        const user = new User({
+          name: "Mahathi",
+          password: "123456",
+          email: "maha@gmail.com",
+          phone: "9876543210",
+          cart: {
+            items: [],
+          },
+        });
+        user.save();
+      }
+    });
+    app.listen(4000);
+    console.log("mongoose connect connected!");
+  });
